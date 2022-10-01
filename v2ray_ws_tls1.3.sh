@@ -93,7 +93,7 @@ if [ -f "/etc/selinux/config" ]; then
         semanage port -m -t http_port_t -p tcp 443
     fi
 fi
-firewall_status=`firewall-cmd --state`
+firewall_status=`firewall-cmd --state >/dev/null 2>&1`
 if [ "$firewall_status" == "running" ]; then
     green "firewalld is present, adding rules to open port 80/443"
     firewall-cmd --zone=public --add-port=80/tcp --permanent
@@ -105,16 +105,16 @@ Port80=`netstat -tlpn | awk -F '[: ]+' '$1=="tcp"{print $5}' | grep -w 80`
 Port443=`netstat -tlpn | awk -F '[: ]+' '$1=="tcp"{print $5}' | grep -w 443`
 if [ -n "$Port80" ]; then
     process80=`netstat -tlpn | awk -F '[: ]+' '$5=="80"{print $9}'`
-    red "==========================================================="
+    red "=============================================================================================================="
     red "It is detected that port 80 is occupied, and the occupied process is: ${process80}, this installation is over"
-    red "==========================================================="
+    red "=============================================================================================================="
     exit 1
 fi
 if [ -n "$Port443" ]; then
     process443=`netstat -tlpn | awk -F '[: ]+' '$5=="443"{print $9}'`
-    red "============================================================="
+    red "================================================================================================================"
     red "It is detected that port 443 is occupied, and the occupied process is: ${process443}, this installation is over"
-    red "============================================================="
+    red "================================================================================================================"
     exit 1
 fi
 }
@@ -216,13 +216,13 @@ systemctl enable nginx.service
 install_v2ray
 }
 
-#安装nginx
+#Install NGINX
 function install(){
     $systemPackage install -y wget curl unzip >/dev/null 2>&1
-    green "======================="
+    green "=============================================="
     blue "Please enter the domain name bound to this VPS"
-    green "======================="
-    read your_domain
+    green "=============================================="
+    read -p "Your Domain: " your_domain
     real_addr=`ping ${your_domain} -c 1 | sed '1{s/[^(]*(//;s/).*//;q}'`
     local_addr=`curl ipv4.icanhazip.com`
     if [ $real_addr == $local_addr ] ; then
@@ -250,10 +250,10 @@ function install(){
 function install_v2ray(){
     
     #bash <(curl -L -s https://install.direct/go.sh)  
-    bash <(curl -L -s https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh) 
+    bash <(curl -L -s   ) 
     cd /usr/local/etc/v2ray/
     rm -f config.json
-    wget https://raw.githubusercontent.com/atrandys/v2ray-ws-tls/master/config.json >/dev/null 2>&1
+    wget https://raw.githubusercontent.com/ahmofrad/v2ray-ws-tls/master/config.json >/dev/null 2>&1
     v2uuid=$(cat /proc/sys/kernel/random/uuid)
     sed -i "s/aaaa/$v2uuid/;" config.json
     sed -i "s/mypath/$newpath/;" config.json
@@ -262,21 +262,28 @@ function install_v2ray(){
     wget https://github.com/ahmofrad/v2ray-ws-tls/raw/master/web.zip >/dev/null 2>&1
     unzip web.zip >/dev/null 2>&1
     systemctl restart v2ray.service
-    systemctl restart nginx.service    
-    
+    systemctl restart nginx.service
+
+
+V2RAY_URL=$(printf vmess://;echo \{\"add\":\"$your_domain\", \"aid\":\"64\", \"ps\":\"V2RAY\", \"host\":\"$your_domain\", \"id\":\"$v2uuid\", \"net\":\"ws\", \"path\":\"$newpath\", \"scy\":\"aes-128-gcm\", \"port\":\"443\", \"tls\":\"tls\", \"type\":\"none\", \"sni\":\"$your_domain\", \"v\":\"2\"\}|base64 -w0;echo)
+
 cat > /usr/local/etc/v2ray/myconfig.json<<-EOF
 {
-===========配置参数=============
+=====Configuration Parameters=====
 Domain：${your_domain}
 Port：443
 uuid：${v2uuid}
-Extra ID：64
+AID：64
 Encryption：aes-128-gcm
 Transfer Protocol：ws
-Alias：myws
+Alias：V2RAY
 Path：${newpath}
 Underlying Transport：tls
 }
+EOF
+
+cat > ~/V2RAY_URL<<-EOF
+${V2RAY_URL}
 EOF
 
 green "=============================="
@@ -285,13 +292,16 @@ green "===Configuration Parameters==="
 green "Address：${your_domain}"
 green "Port：443"
 green "uuid：${v2uuid}"
-green "Extra ID：64"
+green "AID：64"
 green "Encryption：aes-128-gcm"
 green "Transfer Protocol：ws"
-green "Alias：myws"
+green "Alias：V2RAY"
 green "Path：${newpath}"
 green "Underlying Transport：tls"
-green 
+green
+green "The URL is  ${V2RAY_URL}"
+green "You can also find the URL in ~/V2RAY_URL"
+green
 }
 
 function remove_v2ray(){
@@ -322,7 +332,7 @@ function start_menu(){
     red " 3. Remove v2ray"
     yellow " 0. Exit"
     echo
-    read -p "Please enter a number:" num
+    read -p "Please enter a number: " num
     case "$num" in
     1)
     check_os

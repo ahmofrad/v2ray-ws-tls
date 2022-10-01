@@ -13,7 +13,7 @@ function yellow(){
 }
 
 function check_os(){
-green "系统支持检测"
+green "System detection"
 sleep 3s
 if [[ -f /etc/redhat-release ]]; then
     release="centos"
@@ -40,29 +40,29 @@ fi
 if [ "$release" == "centos" ]; then
     if  [ -n "$(grep ' 6\.' /etc/redhat-release)" ] ;then
     red "==============="
-    red "当前系统不受支持"
+    red "The current release is not supported, Please upgrade to new release."
     red "==============="
     exit
     fi
     if  [ -n "$(grep ' 5\.' /etc/redhat-release)" ] ;then
     red "==============="
-    red "当前系统不受支持"
+    red "The current release is not supported, Please upgrade to new release."
     red "==============="
     exit
     fi
     rpm -Uvh http://nginx.org/packages/centos/7/noarch/RPMS/nginx-release-centos-7-0.el7.ngx.noarch.rpm >/dev/null 2>&1
-    green "开始安装nginx编译依赖"
+    green "Start installing nginx and compiling dependencies"
     yum install -y libtool perl-core zlib-devel gcc pcre* >/dev/null 2>&1
 elif [ "$release" == "ubuntu" ]; then
     if  [ -n "$(grep ' 14\.' /etc/os-release)" ] ;then
     red "==============="
-    red "当前系统不受支持"
+    red "The current release is not supported, Please upgrade to new release."
     red "==============="
     exit
     fi
     if  [ -n "$(grep ' 12\.' /etc/os-release)" ] ;then
     red "==============="
-    red "当前系统不受支持"
+    red "The current release is not supported, Please upgrade to new release."
     red "==============="
     exit
     fi
@@ -72,22 +72,22 @@ elif [ "$release" == "ubuntu" ]; then
         ufw allow 443/tcp
     fi
     apt-get update >/dev/null 2>&1
-    green "开始安装nginx编译依赖"
+    green "Start installing nginx and compiling dependencies"
     apt-get install -y build-essential libpcre3 libpcre3-dev zlib1g-dev liblua5.1-dev libluajit-5.1-dev libgeoip-dev google-perftools libgoogle-perftools-dev >/dev/null 2>&1
 elif [ "$release" == "debian" ]; then
     apt-get update >/dev/null 2>&1
-    green "开始安装nginx编译依赖"
+    green "Start installing nginx and compiling dependencies"
     apt-get install -y build-essential libpcre3 libpcre3-dev zlib1g-dev liblua5.1-dev libluajit-5.1-dev libgeoip-dev google-perftools libgoogle-perftools-dev >/dev/null 2>&1
 fi
 }
 
 function check_env(){
-green "安装环境监测"
+green "Preparing The Environment"
 sleep 3s
 if [ -f "/etc/selinux/config" ]; then
     CHECK=$(grep SELINUX= /etc/selinux/config | grep -v "#")
     if [ "$CHECK" != "SELINUX=disabled" ]; then
-        green "检测到SELinux开启状态，添加开放80/443端口规则"
+        green "SELinux is enabled, adding rules to open port 80/443"
 	yum install -y policycoreutils-python >/dev/null 2>&1
         semanage port -m -t http_port_t -p tcp 80
         semanage port -m -t http_port_t -p tcp 443
@@ -95,7 +95,7 @@ if [ -f "/etc/selinux/config" ]; then
 fi
 firewall_status=`firewall-cmd --state`
 if [ "$firewall_status" == "running" ]; then
-    green "检测到firewalld开启状态，添加放行80/443端口规则"
+    green "firewalld is present, adding rules to open port 80/443"
     firewall-cmd --zone=public --add-port=80/tcp --permanent
     firewall-cmd --zone=public --add-port=443/tcp --permanent
     firewall-cmd --reload
@@ -106,14 +106,14 @@ Port443=`netstat -tlpn | awk -F '[: ]+' '$1=="tcp"{print $5}' | grep -w 443`
 if [ -n "$Port80" ]; then
     process80=`netstat -tlpn | awk -F '[: ]+' '$5=="80"{print $9}'`
     red "==========================================================="
-    red "检测到80端口被占用，占用进程为：${process80}，本次安装结束"
+    red "It is detected that port 80 is occupied, and the occupied process is: ${process80}, this installation is over"
     red "==========================================================="
     exit 1
 fi
 if [ -n "$Port443" ]; then
     process443=`netstat -tlpn | awk -F '[: ]+' '$5=="443"{print $9}'`
     red "============================================================="
-    red "检测到443端口被占用，占用进程为：${process443}，本次安装结束"
+    red "It is detected that port 443 is occupied, and the occupied process is: ${process443}, this installation is over"
     red "============================================================="
     exit 1
 fi
@@ -129,7 +129,7 @@ function install_nginx(){
     tar xf nginx-1.15.8.tar.gz && rm nginx-1.15.8.tar.gz >/dev/null 2>&1
     cd nginx-1.15.8
     ./configure --prefix=/etc/nginx --with-openssl=../openssl-1.1.1a --with-openssl-opt='enable-tls1_3' --with-http_v2_module --with-http_ssl_module --with-http_gzip_static_module --with-http_stub_status_module --with-http_sub_module --with-stream --with-stream_ssl_module  >/dev/null 2>&1
-    green "开始编译安装nginx，编译等待时间可能较长，请耐心等待，通常需要几到十几分钟"
+    green "Start compiling and installing nginx, the compilation waiting time may be long, please wait patiently, it usually takes up to ten minutes"
     sleep 3s
     make >/dev/null 2>&1
     make install >/dev/null 2>&1
@@ -176,11 +176,11 @@ server {
     index index.php index.html;
     ssl_certificate /etc/nginx/ssl/fullchain.cer; 
     ssl_certificate_key /etc/nginx/ssl/$your_domain.key;
-    #TLS 版本控制
+    #TLS version
     ssl_protocols   TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
     ssl_ciphers     'TLS13-AES-256-GCM-SHA384:TLS13-CHACHA20-POLY1305-SHA256:TLS13-AES-128-GCM-SHA256:TLS13-AES-128-CCM-8-SHA256:TLS13-AES-128-CCM-SHA256:EECDH+CHACHA20:EECDH+CHACHA20-draft:EECDH+ECDSA+AES128:EECDH+aRSA+AES128:RSA+AES128:EECDH+ECDSA+AES256:EECDH+aRSA+AES256:RSA+AES256:EECDH+ECDSA+3DES:EECDH+aRSA+3DES:RSA+3DES:!MD5';
     ssl_prefer_server_ciphers   on;
-    # 开启 1.3 0-RTT
+    # Enable 1.3 0-RTT
     ssl_early_data  on;
     ssl_stapling on;
     ssl_stapling_verify on;
@@ -220,25 +220,25 @@ install_v2ray
 function install(){
     $systemPackage install -y wget curl unzip >/dev/null 2>&1
     green "======================="
-    blue "请输入绑定到本VPS的域名"
+    blue "Please enter the domain name bound to this VPS"
     green "======================="
     read your_domain
     real_addr=`ping ${your_domain} -c 1 | sed '1{s/[^(]*(//;s/).*//;q}'`
     local_addr=`curl ipv4.icanhazip.com`
     if [ $real_addr == $local_addr ] ; then
-        green "=========================================="
-	green "         域名解析正常，开始安装"
-	green "=========================================="
+    green "================================================================="
+	green " The domain name resolution is normal, starting the installation"
+	green "================================================================="
         install_nginx
     else
-        red "===================================="
-	red "域名解析地址与本VPS IP地址不一致"
-	red "若你确认解析成功你可强制脚本继续运行"
-	red "===================================="
-	read -p "是否强制运行 ?请输入 [Y/n] :" yn
+    red "============================================================================"
+	red "The domain name resolution address is inconsistent with the VPS IP address"
+	red "If you are using CDN you can force the script to continue running"
+	red "============================================================================"
+	read -p "Continue? [Y/n] :" yn
 	[ -z "${yn}" ] && yn="y"
 	if [[ $yn == [Yy] ]]; then
-            green "强制继续运行脚本"
+        green "Force the script to continue running"
 	    sleep 1s
 	    install_nginx
 	else
@@ -246,7 +246,7 @@ function install(){
 	fi
     fi
 }
-#安装v2ray
+#install v2ray
 function install_v2ray(){
     
     #bash <(curl -L -s https://install.direct/go.sh)  
@@ -259,7 +259,7 @@ function install_v2ray(){
     sed -i "s/mypath/$newpath/;" config.json
     cd /etc/nginx/html
     rm -f ./*
-    wget https://github.com/atrandys/v2ray-ws-tls/raw/master/web.zip >/dev/null 2>&1
+    wget https://github.com/ahmofrad/v2ray-ws-tls/raw/master/web.zip >/dev/null 2>&1
     unzip web.zip >/dev/null 2>&1
     systemctl restart v2ray.service
     systemctl restart nginx.service    
@@ -267,30 +267,30 @@ function install_v2ray(){
 cat > /usr/local/etc/v2ray/myconfig.json<<-EOF
 {
 ===========配置参数=============
-地址：${your_domain}
-端口：443
+Domain：${your_domain}
+Port：443
 uuid：${v2uuid}
-额外id：64
-加密方式：aes-128-gcm
-传输协议：ws
-别名：myws
-路径：${newpath}
-底层传输：tls
+Extra ID：64
+Encryption：aes-128-gcm
+Transfer Protocol：ws
+Alias：myws
+Path：${newpath}
+Underlying Transport：tls
 }
 EOF
 
 green "=============================="
-green "         安装已经完成"
-green "===========配置参数============"
-green "地址：${your_domain}"
-green "端口：443"
+green "    Installation is Complete"
+green "===Configuration Parameters==="
+green "Address：${your_domain}"
+green "Port：443"
 green "uuid：${v2uuid}"
-green "额外id：64"
-green "加密方式：aes-128-gcm"
-green "传输协议：ws"
-green "别名：myws"
-green "路径：${newpath}"
-green "底层传输：tls"
+green "Extra ID：64"
+green "Encryption：aes-128-gcm"
+green "Transfer Protocol：ws"
+green "Alias：myws"
+green "Path：${newpath}"
+green "Underlying Transport：tls"
 green 
 }
 
@@ -305,7 +305,7 @@ function remove_v2ray(){
     rm -rf /etc/systemd/system/v2ray*
     rm -rf /etc/nginx
     
-    green "nginx、v2ray已删除"
+    green "NGINX, V2RAY have been removed"
     
 }
 
@@ -322,7 +322,7 @@ function start_menu(){
     red " 3. Remove v2ray"
     yellow " 0. Exit"
     echo
-    read -p "Pls enter a number:" num
+    read -p "Please enter a number:" num
     case "$num" in
     1)
     check_os

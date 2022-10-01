@@ -3,12 +3,26 @@
 
 Credit to the original Author  <br><br>
 
-#### Install Instructions:
+### Install Instructions  
+
+
+Ubuntu:
 
 `sudo apt update && apt upgrade -y`
 
 `sudo apt install wget -y`
 
-`sudo wget https://is.gd/v2ray_tls`
+`wget https://is.gd/v2ray_tls`
+
+`sudo bash v2ray_ws_tls1.3.sh`  
+
+
+CentOS:
+
+`sudo yum update -y`
+
+`sudo yum install wget -y`
+
+`wget https://is.gd/v2ray_tls`
 
 `sudo bash v2ray_ws_tls1.3.sh`

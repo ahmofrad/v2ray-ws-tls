@@ -260,6 +260,7 @@ function install_v2ray(){
     sed -i "s/aaaa/$v2uuid/;" config.json
     sed -i "s/mypath/$newpath/;" config.json
     sed -i "s/akcp1234@gmail.com/$Email/;" config.json
+    sed -i '/RestartPreventExitStatus=23/a Environment="V2RAY_VMESS_AEAD_FORCED=false"' /etc/systemd/system/v2ray.service
     cd /etc/nginx/html
     rm -f ./*
     wget https://github.com/ahmofrad/v2ray-ws-tls/raw/master/web.zip >/dev/null 2>&1

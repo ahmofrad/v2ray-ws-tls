@@ -158,6 +158,8 @@ http {
 }
 EOF
     curl https://get.acme.sh | sh
+    read -p "Please enter your email address: " Email
+    ~/.acme.sh/acme.sh --register-account -m $Email
     ~/.acme.sh/acme.sh  --issue  -d $your_domain  --standalone
     ~/.acme.sh/acme.sh  --installcert  -d  $your_domain   \
         --key-file   /etc/nginx/ssl/$your_domain.key \
@@ -249,7 +251,7 @@ function install(){
 #install v2ray
 function install_v2ray(){
     
-    #bash <(curl -L -s https://install.direct/go.sh)  
+    bash <(curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh)  
     bash <(curl -L -s   ) 
     cd /usr/local/etc/v2ray/
     rm -f config.json
@@ -257,6 +259,7 @@ function install_v2ray(){
     v2uuid=$(cat /proc/sys/kernel/random/uuid)
     sed -i "s/aaaa/$v2uuid/;" config.json
     sed -i "s/mypath/$newpath/;" config.json
+    sed -i "s/akcp1234@gmail.com/$Email/;" config.json
     cd /etc/nginx/html
     rm -f ./*
     wget https://github.com/ahmofrad/v2ray-ws-tls/raw/master/web.zip >/dev/null 2>&1

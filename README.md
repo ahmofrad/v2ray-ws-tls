@@ -12,7 +12,7 @@ Ubuntu:
 
 `sudo apt install wget -y`
 
-`wget https://is.gd/v2ray_tls`
+`wget https://raw.githubusercontent.com/ahmofrad/v2ray-ws-tls/master/v2ray_ws_tls1.3.sh`
 
 `sudo bash v2ray_ws_tls1.3.sh`  
 
@@ -23,6 +23,6 @@ CentOS:
 
 `sudo yum install wget -y`
 
-`wget https://is.gd/v2ray_tls`
+`wget https://raw.githubusercontent.com/ahmofrad/v2ray-ws-tls/master/v2ray_ws_tls1.3.sh`
 
 `sudo bash v2ray_ws_tls1.3.sh`
